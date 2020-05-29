@@ -1,8 +1,11 @@
 package it.polito.tdp.artsmia;
 
 import java.net.URL;
+import java.nio.MappedByteBuffer;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.artsmia.model.Artist;
 import it.polito.tdp.artsmia.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -31,7 +34,7 @@ public class ArtsmiaController {
     private Button btnCalcolaPercorso;
 
     @FXML
-    private ComboBox<?> boxRuolo;
+    private ComboBox<String> boxRuolo;
 
     @FXML
     private TextField txtArtista;
@@ -41,24 +44,48 @@ public class ArtsmiaController {
 
     @FXML
     void doArtistiConnessi(ActionEvent event) {
-    	txtResult.clear();
-    	txtResult.appendText("Calcola artisti connessi");
+    	txtResult.appendText("\n"+model.artistiConnessi());
     }
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
-    	txtResult.clear();
-    	txtResult.appendText("Calcola percorso");
+    	try {
+    		int artistaID = Integer.parseInt(txtArtista.getText());
+    		if(!model.getMappaArtisti().containsKey(artistaID)) {
+    			txtResult.setText("Artista non trovato");
+    			return;
+    		}
+    		Artist artista = model.getMappaArtisti().get(artistaID);
+    		model.calcolaPercorso(artista);
+    		txtResult.setText(model.getBest());
+    	} catch (NumberFormatException e) {
+			e.printStackTrace();
+			txtResult.setText("Non hai introdotto un numero");
+		} catch (Exception e) {
+			e.printStackTrace();
+			txtResult.setText("ERRORE!!!");
+		}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-    	txtResult.clear();
-    	txtResult.appendText("Crea grafo");
+    	try {
+			txtResult.clear();
+			
+			model.creaGrafo(boxRuolo.getValue());
+			txtResult.setText(String.format("Grafo creato con %d vetici e %d archi \n", model.numVertex(), model.numEdges()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			txtResult.setText("ERRORE!!!");
+		}
     }
 
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	List<String> roles = model.listRoles();
+    	boxRuolo.getItems().addAll(roles);
+    	boxRuolo.setValue(roles.get(0));
     }
 
     
